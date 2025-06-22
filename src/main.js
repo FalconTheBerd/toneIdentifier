@@ -18,13 +18,14 @@ const player        = document.getElementById("player");
 let mediaRecorder;
 let audioChunks = [];
 let audioBlob   = null;
+let mediaStream = null;
 
 recordBtn.onclick = async () => {
   resetUI();
 
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
-  audioChunks   = [];
+  mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(mediaStream);
+  audioChunks = [];
 
   mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
@@ -33,20 +34,23 @@ recordBtn.onclick = async () => {
     player.src = URL.createObjectURL(audioBlob);
     player.load();
 
-    statusDiv.textContent  = "Ready – press Detect.";
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+
+    statusDiv.textContent = "Ready – press Detect.";
     detectTextBtn.disabled = false;
   };
 
   mediaRecorder.start();
   statusDiv.textContent = "Recording…";
   recordBtn.disabled = true;
-  stopBtn.disabled   = false;
+  stopBtn.disabled = false;
 };
 
 stopBtn.onclick = () => {
   mediaRecorder.stop();
   recordBtn.disabled = false;
-  stopBtn.disabled   = true;
+  stopBtn.disabled = true;
 };
 
 detectTextBtn.onclick = async () => {
